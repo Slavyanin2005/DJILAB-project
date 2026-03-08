@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-djilab
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: Dflbv2005
+      POSTGRES_DB: djilab_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_/var/lib/postgresql/data
+    networks:
+      - djilab-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: Dflbv2005
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - djilab-network
+
+  backend:
+    build: ./backend
+    container_name: djilab-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-lab1-secret-key-change-in-production
+      - DB_NAME=djilab_db
+      - DB_USER=admin
+      - DB_PASSWORD=Dflbv2005
+      - DB_HOST=postgres
+      - DB_PORT=5432
+    volumes:
+      - ./backend:/app
+    networks:
+      - djilab-network
+    command: python manage.py runserver 0.0.0.0:8000
+
+  frontend:
+    build: ./frontend
+    container_name: djilab-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+    networks:
+      - djilab-network
+    command: npm run dev -- --host 0.0.0.0
+
+  adminer:
+    image: adminer
+    container_name: adminer-djilab
+    ports:
+      - "8080:8080"
+    networks:
+      - djilab-network
+
+volumes:
+  postgres_
+  minio_
+
+networks:
+  djilab-network:
+    driver: bridge

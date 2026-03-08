@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина — DJILab</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav class="nav">
+                <a href="{% url 'services' %}" class="logo">DJI<span>Lab</span></a>
+                <div class="nav-links">
+                    <a href="{% url 'services' %}">Каталог</a>
+                    <a href="#">Услуги</a>
+                    <a href="{% url 'orders_history' %}">Заявки</a>
+                </div>
+                <a href="{% url 'order' draft_order_id|default:0 %}" class="cart-btn">Корзина ({{ cart_count|default:0 }})</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="cart-page">
+            <h1 class="section-title">Корзина</h1>
+
+            {% if no_order %}
+            <div class="cart-empty">
+                <div class="cart-empty-icon">📋</div>
+                <h2>Нет активной заявки</h2>
+                <p>У вас нет заявки в статусе "Черновик". Добавьте товар в корзину, чтобы создать новую заявку.</p>
+                <a href="{% url 'services' %}" class="btn-primary">Перейти в каталог</a>
+            </div>
+
+            {% elif order_items %}
+            <div class="cart-content">
+                <div class="cart-grid">
+                    <div class="cart-items">
+                        <table class="cart-table">
+                            <thead>
+                                <tr>
+                                    <th>Услуга</th>
+                                    <th>Цена</th>
+                                    <th>Кол-во</th>
+                                    <th>Итого</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order_items %}
+                                <tr>
+                                    <td>
+                                        <div class="item-info">
+                                            <img src="{{ MEDIA_URL }}{{ item.service.image_key }}" alt="{{ item.service.name }}">
+                                            <div>
+                                                <h3>{{ item.service.name }}</h3>
+                                                <small>{{ item.service.category }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="item-price">{{ item.service.price }} ₽</td>
+                                    <td>
+                                        <form method="POST" action="{% url 'update_quantity' order.id item.id %}" class="quantity-form">
+                                            {% csrf_token %}
+                                            <div class="quantity-control">
+                                                <button type="submit" name="action" value="decrease">−</button>
+                                                <input type="number" value="{{ item.quantity }}" min="1" readonly>
+                                                <button type="submit" name="action" value="increase">+</button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                    <td class="item-total">{{ item.subtotal }} ₽</td>
+                                    <td>
+                                        <form method="POST" action="{% url 'remove_from_order' order.id item.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="remove-btn" title="Удалить из заявки">×</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <a href="{% url 'services' %}" class="continue-shopping">← Продолжить выбор</a>
+                    </div>
+
+                    <div class="cart-summary">
+                        <h2>Итого</h2>
+                        <div class="summary-row">
+                            <span>Товары ({{ order.items_count }} шт.)</span>
+                            <span>{{ order.total }} ₽</span>
+                        </div>
+                        <div class="summary-total">
+                            <span>Всего</span>
+                            <span>{{ order.total }} ₽</span>
+                        </div>
+
+                        <form method="POST" action="{% url 'delete_order' order.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="checkout-btn" style="background: var(--error);">
+                                Удалить заявку
+                            </button>
+                        </form>
+
+                        <p class="secure-note">🔒 Безопасное оформление</p>
+                    </div>
+                </div>
+            </div>
+
+            {% else %}
+            <div class="cart-empty">
+                <div class="cart-empty-icon">🛒</div>
+                <h2>Ваша корзина пуста</h2>
+                <p>Добавьте товары из каталога, чтобы оформить заказ</p>
+                <a href="{% url 'services' %}" class="btn-primary">Вернуться в каталог</a>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <h4>DJILab</h4>
+                    <p style="color: #bbb; line-height: 1.8;">Надёжное лабораторное оборудование премиум-класса</p>
+                </div>
+                <div>
+                    <h4>Каталог</h4>
+                    <ul>
+                        <li><a href="#">pH-метры</a></li>
+                        <li><a href="#">Весы</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Компания</h4>
+                    <ul>
+                        <li><a href="#">О нас</a></li>
+                        <li><a href="#">Контакты</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Контакты</h4>
+                    <ul>
+                        <li><a href="tel:+74957775533">+7 (495) 777-55-33</a></li>
+                        <li><a href="mailto:info@djilab.ru">info@djilab.ru</a></li>
+                        <li>Пн–Пт: 9:00–18:00</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                © 2026 ООО «DJILab»
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
