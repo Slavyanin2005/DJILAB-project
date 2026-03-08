@@ -2,6 +2,7 @@
 Django settings for djilab project.
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -70,11 +71,11 @@ WSGI_APPLICATION = "djilab.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "djilab_db",
-        "USER": "admin",
-        "PASSWORD": "Dflbv2005",
-        "HOST": "localhost",
-        "PORT": "5433",
+        "NAME": os.getenv("DB_NAME", "djilab_db"),
+        "USER": os.getenv("DB_USER", "admin"),
+        "PASSWORD": os.getenv("DB_PASSWORD", "Dflbv2005"),
+        "HOST": os.getenv("DB_HOST", "localhost"),  # ← В Docker будет 'postgres'
+        "PORT": os.getenv("DB_PORT", "5432"),  # ← В Docker будет '5432'
     }
 }
 

@@ -11,7 +11,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - postgres_/var/lib/postgresql/data
+      - C:/postgres-data:/var/lib/postgresql/data
     networks:
       - djilab-network
     healthcheck:
@@ -31,7 +31,7 @@ services:
       MINIO_ROOT_PASSWORD: Dflbv2005
     command: server /data --console-address ":9001"
     volumes:
-      - minio_data:/data
+      - C:/minio-data:/data
     networks:
       - djilab-network
 
@@ -80,10 +80,6 @@ services:
       - "8080:8080"
     networks:
       - djilab-network
-
-volumes:
-  postgres_
-  minio_
 
 networks:
   djilab-network:
