@@ -4,7 +4,7 @@ import { apiService } from '../services/api';
 import type { Service } from '../types';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { useCart } from '../context/CartContext';
+import { useCartContext } from '../hooks/useCartContext';
 import '../index.css';
 
 export const Product: React.FC = () => {
@@ -13,7 +13,7 @@ export const Product: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const { refreshCart } = useCart();
+  const { refreshCart } = useCartContext();
 
   useEffect(() => {
     if (id) {
@@ -36,7 +36,7 @@ export const Product: React.FC = () => {
     if (!service) return;
     try {
       const orders = await apiService.getOrders();
-      let order = orders.find(o => o.status === 'draft');
+      let order = orders.find((o) => o.status === 'draft');
 
       if (!order) {
         order = await apiService.createOrder();
@@ -44,14 +44,13 @@ export const Product: React.FC = () => {
 
       await apiService.addToOrder(order.id, service.id, quantity);
       await refreshCart();
-
     } catch (error) {
       console.error('Failed to add to cart:', error);
     }
   };
 
   const updateQuantity = (change: number) => {
-    setQuantity(prev => {
+    setQuantity((prev) => {
       const newValue = prev + change;
       return Math.max(1, Math.min(99, newValue));
     });
@@ -61,7 +60,9 @@ export const Product: React.FC = () => {
     return (
       <div>
         <Header />
-        <div className="container" style={{ padding: '120px', textAlign: 'center' }}>Загрузка...</div>
+        <div className="container" style={{ padding: '120px', textAlign: 'center' }}>
+          Загрузка...
+        </div>
         <Footer />
       </div>
     );
@@ -71,7 +72,9 @@ export const Product: React.FC = () => {
     return (
       <div>
         <Header />
-        <div className="container" style={{ padding: '120px', textAlign: 'center' }}>Товар не найден</div>
+        <div className="container" style={{ padding: '120px', textAlign: 'center' }}>
+          Товар не найден
+        </div>
         <Footer />
       </div>
     );
@@ -96,7 +99,10 @@ export const Product: React.FC = () => {
           <div className="product-gallery">
             <div className="gallery-main">
               {service.video_key && (
-                <div className={`gallery-item ${activeImageIndex === 0 ? 'active' : ''}`} data-type="video">
+                <div
+                  className={`gallery-item ${activeImageIndex === 0 ? 'active' : ''}`}
+                  data-type="video"
+                >
                   <video className="detail-img" muted loop autoPlay controls>
                     <source src={`${MEDIA_URL}${service.video_key}`} type="video/mp4" />
                   </video>
@@ -116,17 +122,23 @@ export const Product: React.FC = () => {
                 <>
                   <button
                     className="gallery-nav prev"
-                    onClick={() => setActiveImageIndex(prev =>
-                      prev > 0 ? prev - 1 : (service.video_key ? images.length : images.length - 1)
-                    )}
+                    onClick={() =>
+                      setActiveImageIndex((prev) =>
+                        prev > 0 ? prev - 1 : service.video_key ? images.length : images.length - 1
+                      )
+                    }
                   >
                     ‹
                   </button>
                   <button
                     className="gallery-nav next"
-                    onClick={() => setActiveImageIndex(prev =>
-                      prev < (service.video_key ? images.length : images.length - 1) ? prev + 1 : 0
-                    )}
+                    onClick={() =>
+                      setActiveImageIndex((prev) =>
+                        prev < (service.video_key ? images.length : images.length - 1)
+                          ? prev + 1
+                          : 0
+                      )
+                    }
                   >
                     ›
                   </button>
@@ -164,18 +176,17 @@ export const Product: React.FC = () => {
 
             <div className="actions">
               <div className="quantity-control">
-                <button type="button" className="qty-minus" onClick={() => updateQuantity(-1)}>−</button>
-                <input
-                  type="number"
-                  id="quantity"
-                  value={quantity}
-                  min={1}
-                  max={99}
-                  readOnly
-                />
-                <button type="button" className="qty-plus" onClick={() => updateQuantity(1)}>+</button>
+                <button type="button" className="qty-minus" onClick={() => updateQuantity(-1)}>
+                  −
+                </button>
+                <input type="number" id="quantity" value={quantity} min={1} max={99} readOnly />
+                <button type="button" className="qty-plus" onClick={() => updateQuantity(1)}>
+                  +
+                </button>
               </div>
-              <button onClick={handleAddToCart} className="btn-primary">В корзину</button>
+              <button onClick={handleAddToCart} className="btn-primary">
+                В корзину
+              </button>
             </div>
           </div>
         </div>

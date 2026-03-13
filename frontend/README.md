@@ -159,5 +159,22 @@ const MyComponent = () => {
 - CSRF-токен автоматически добавляется к запросам
 - Backend должен разрешать `http://localhost:5173` в `CORS_ALLOWED_ORIGINS`
 
+## Code Style
+
+### Именование
+| Тип | Стиль | Пример |
+|-----|-------|--------|
+| Переменные | `camelCase` | `cartCount`, `userName` |
+| Функции | `camelCase` | `handleAddToCart()`, `loadServices()` |
+| Компоненты | `PascalCase` | `ProductCard`, `OrderHistory` |
+| Файлы компонентов | `PascalCase.tsx` | `ProductCard.tsx`, `Header.tsx` |
+| Файлы утилит | `camelCase.ts` | `api.ts`, `utils.ts` |
+| Константы | `UPPER_SNAKE_CASE` | `API_BASE_URL`, `MAX_ITEMS` |
+| Типы/Интерфейсы | `PascalCase` | `Service`, `OrderItem` |
+
+### Инструменты
+- **ESLint** — линтинг TypeScript/React кода
+- **Prettier** — форматирование кода (опционально)
+
 ## Лицензия
 Проект создан в учебных целях, ЗГУ.

@@ -10,4 +10,4 @@ exclude =
     frontend/node_modules,
     frontend/dist,
     *.pyc
-ignore = E203, W503, E501, F401
+ignore = E203, W503, E501

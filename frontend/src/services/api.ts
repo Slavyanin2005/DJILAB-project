@@ -15,7 +15,7 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const csrfToken = document.cookie
     .split('; ')
-    .find(row => row.startsWith('csrftoken='))
+    .find((row) => row.startsWith('csrftoken='))
     ?.split('=')[1];
 
   if (csrfToken) {
@@ -61,7 +61,11 @@ export const apiService = {
     return response.data;
   },
 
-  updateQuantity: async (orderId: number, itemId: number, action: 'increase' | 'decrease'): Promise<Order> => {
+  updateQuantity: async (
+    orderId: number,
+    itemId: number,
+    action: 'increase' | 'decrease'
+  ): Promise<Order> => {
     const response = await api.post(`/orders/${orderId}/update_item/`, {
       item_id: itemId,
       action,

@@ -127,6 +127,22 @@ isort==5.13.2
 pip install -r requirements.txt
 ```
 
+## Code Style
+
+### Именование
+| Тип | Стиль | Пример |
+|-----|-------|--------|
+| Переменные | `snake_case` | `user_id`, `order_total` |
+| Функции | `snake_case` | `get_order()`, `create_service()` |
+| Классы | `PascalCase` | `OrderItem`, `UserProfile` |
+| Файлы | `snake_case.py` | `api_views.py`, `serializers.py` |
+| Константы | `UPPER_SNAKE_CASE` | `DEBUG`, `SECRET_KEY` |
+
+### Инструменты
+- **Black** — автоматическое форматирование кода
+- **isort** — сортировка импортов
+- **flake8** — линтинг (поиск ошибок)
+
 ## Безопасность
 Важно: В продакшене обязательно:
 1. Замените `SECRET_KEY` на сгенерированный безопасный ключ

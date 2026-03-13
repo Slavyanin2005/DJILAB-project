@@ -60,3 +60,10 @@ export interface UserProfile {
   position: string;
   created_at: string;
 }
+
+export type CartContextType = {
+  cartCount: number;
+  draftOrder: Order | null;
+  loading: boolean;
+  refreshCart: () => Promise<void>;
+};

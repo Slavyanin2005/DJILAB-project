@@ -12,19 +12,43 @@ export const Footer: React.FC = () => {
           <div>
             <h4 style={{ color: 'white', marginBottom: '20px' }}>Каталог</h4>
             <ul style={{ listStyle: 'none', padding: 0 }}>
-              <li><a href="#" style={{ color: '#bbb', textDecoration: 'none' }}>pH-метры</a></li>
-              <li><a href="#" style={{ color: '#bbb', textDecoration: 'none' }}>Весы</a></li>
+              <li>
+                <a href="#" style={{ color: '#bbb', textDecoration: 'none' }}>
+                  pH-метры
+                </a>
+              </li>
+              <li>
+                <a href="#" style={{ color: '#bbb', textDecoration: 'none' }}>
+                  Весы
+                </a>
+              </li>
             </ul>
           </div>
           <div>
             <h4 style={{ color: 'white', marginBottom: '20px' }}>Контакты</h4>
             <ul style={{ listStyle: 'none', padding: 0 }}>
-              <li><a href="tel:+74957775533" style={{ color: '#bbb', textDecoration: 'none' }}>+7 (495) 777-55-33</a></li>
-              <li><a href="mailto:info@djilab.ru" style={{ color: '#bbb', textDecoration: 'none' }}>info@djilab.ru</a></li>
+              <li>
+                <a href="tel:+74957775533" style={{ color: '#bbb', textDecoration: 'none' }}>
+                  +7 (495) 777-55-33
+                </a>
+              </li>
+              <li>
+                <a href="mailto:info@djilab.ru" style={{ color: '#bbb', textDecoration: 'none' }}>
+                  info@djilab.ru
+                </a>
+              </li>
             </ul>
           </div>
         </div>
-        <div style={{ textAlign: 'center', marginTop: '64px', paddingTop: '32px', borderTop: '1px solid rgba(255,255,255,0.1)', color: '#888' }}>
+        <div
+          style={{
+            textAlign: 'center',
+            marginTop: '64px',
+            paddingTop: '32px',
+            borderTop: '1px solid rgba(255,255,255,0.1)',
+            color: '#888',
+          }}
+        >
           © 2026 ООО «DJILab»
         </div>
       </div>

@@ -3,14 +3,14 @@ import { apiService } from '../services/api';
 import type { Order, OrderItem } from '../types';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { useCart } from '../context/CartContext';
+import { useCartContext } from '../hooks/useCartContext';
 import '../index.css';
 
 export const Cart: React.FC = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const { refreshCart } = useCart();
+  const { refreshCart } = useCartContext();
 
   useEffect(() => {
     loadCart();
@@ -19,7 +19,7 @@ export const Cart: React.FC = () => {
   const loadCart = async () => {
     try {
       const orders = await apiService.getOrders();
-      const draftOrder = orders.find(o => o.status === 'draft');
+      const draftOrder = orders.find((o) => o.status === 'draft');
 
       if (draftOrder) {
         // ✅ Черновик есть — загружаем товары
@@ -78,7 +78,9 @@ export const Cart: React.FC = () => {
     return (
       <div>
         <Header />
-        <div className="container" style={{ padding: '120px', textAlign: 'center' }}>Загрузка...</div>
+        <div className="container" style={{ padding: '120px', textAlign: 'center' }}>
+          Загрузка...
+        </div>
         <Footer />
       </div>
     );
@@ -95,8 +97,13 @@ export const Cart: React.FC = () => {
             <div className="cart-empty">
               <div className="cart-empty-icon">📋</div>
               <h2>Нет активной заявки</h2>
-              <p>У вас нет заявки в статусе "Черновик". Добавьте товар в корзину, чтобы создать новую заявку.</p>
-              <a href="/" className="btn-primary">Перейти в каталог</a>
+              <p>
+                У вас нет заявки в статусе "Черновик". Добавьте товар в корзину, чтобы создать новую
+                заявку.
+              </p>
+              <a href="/" className="btn-primary">
+                Перейти в каталог
+              </a>
             </div>
           </div>
         </main>
@@ -117,7 +124,9 @@ export const Cart: React.FC = () => {
               <div className="cart-empty-icon">🛒</div>
               <h2>Ваша корзина пуста</h2>
               <p>Добавьте товары из каталога, чтобы оформить заказ</p>
-              <a href="/" className="btn-primary">Вернуться в каталог</a>
+              <a href="/" className="btn-primary">
+                Вернуться в каталог
+              </a>
             </div>
           </div>
         </main>
@@ -173,11 +182,7 @@ export const Cart: React.FC = () => {
                             >
                               −
                             </button>
-                            <input
-                              type="number"
-                              value={item.quantity}
-                              readOnly
-                            />
+                            <input type="number" value={item.quantity} readOnly />
                             <button
                               onClick={() => updateQuantity(item.id, 'increase')}
                               type="button"
@@ -201,7 +206,9 @@ export const Cart: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
-                <a href="/" className="continue-shopping">← Продолжить выбор</a>
+                <a href="/" className="continue-shopping">
+                  ← Продолжить выбор
+                </a>
               </div>
 
               <div className="cart-summary">
