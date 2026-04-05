@@ -8,7 +8,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // ← Отправлять куки сессии
+  withCredentials: true,
 });
 
 // Перехватчик для добавления CSRF-токена
@@ -48,7 +48,7 @@ export const apiService = {
   },
 
   createOrder: async (): Promise<Order> => {
-    // Отправляем пустой объект, т.к. бэкенд сам генерирует все поля
+    // пустой объект, т.к. бэкенд сам генерирует все поля
     const response = await api.post('/orders/', {});
     return response.data;
   },
