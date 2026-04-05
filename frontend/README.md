@@ -81,18 +81,18 @@ frontend/
 
 ## Технологии
 
-| Технология | Версия | Назначение |
-|------------|--------|------------|
-| **React** | 19.2.0 | UI библиотека |
-| **TypeScript** | 5.9.3 | Типизация JavaScript |
-| **Vite** | 7.3.1 | Сборщик и dev-сервер |
-| **React Router DOM** | 7.13.1 | Маршрутизация |
-| **Axios** | 1.13.6 | HTTP клиент |
-| **ESLint** | 9.39.1 | Линтер кода |
-| **Prettier** | 3.8.1 | Форматтер кода |
-| **TypeScript ESLint** | 8.48.0 | Линтер для TypeScript |
-| **ESLint Plugin React Hooks** | 7.0.1 | Проверка хуков React |
-| **ESLint Plugin React Refresh** | 0.4.24 | Проверка Fast Refresh |
+| Технология | Версия | Назначение | Документация |
+|------------|--------|------------|--------------|
+| **React** | 19.2.0 | UI библиотека | [react.dev](https://react.dev/) |
+| **TypeScript** | 5.9.3 | Типизация JavaScript | [typescriptlang.org/docs](https://www.typescriptlang.org/docs/) |
+| **Vite** | 7.3.1 | Сборщик и dev-сервер | [vite.dev](https://vite.dev/) |
+| **React Router DOM** | 7.13.1 | Маршрутизация | [reactrouter.com](https://reactrouter.com/) |
+| **Axios** | 1.13.6 | HTTP клиент | [axios-http.com/docs](https://axios-http.com/docs/intro) |
+| **ESLint** | 9.39.1 | Линтер кода | [eslint.org/docs](https://eslint.org/docs/) |
+| **Prettier** | 3.8.1 | Форматтер кода | [prettier.io/docs](https://prettier.io/docs/) |
+| **TypeScript ESLint** | 8.48.0 | Линтер для TypeScript | [typescript-eslint.io](https://typescript-eslint.io/) |
+| **ESLint Plugin React Hooks** | 7.0.1 | Проверка хуков React | [github.com/facebook/react](https://github.com/facebook/react/tree/main/packages/eslint-plugin-react-hooks) |
+| **ESLint Plugin React Refresh** | 0.4.24 | Проверка Fast Refresh | [github.com/vitejs/vite-plugin-react](https://github.com/vitejs/vite-plugin-react) |
 
 ---
 

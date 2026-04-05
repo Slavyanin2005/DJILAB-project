@@ -44,3 +44,12 @@ repos:
         language: system
         files: ^frontend/.*\.(ts|tsx|js|jsx)$
         pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: check-filenames
+        name: Check file naming conventions
+        entry: python check_filenames.py
+        language: system
+        types: [file]
+        pass_filenames: true

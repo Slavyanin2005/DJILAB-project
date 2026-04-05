@@ -47,6 +47,7 @@ djilab-project/
 ├── .flake8                      # Конфигурация flake8
 ├── .gitignore                   # Git ignore
 ├── .pre-commit-config.yaml      # Pre-commit хуки
+├── check_filenames.py           # Проверка стиля кода
 ├── docker-compose.yml           # Docker Compose конфигурация
 └── README.md                    # Этот файл
 ```
@@ -56,36 +57,36 @@ djilab-project/
 ## Технологии
 
 ### Backend
-| Технология | Версия | Назначение |
-|------------|--------|------------|
-| **Python** | 3.11 | Язык программирования |
-| **Django** | 5.2.11 | Web-фреймворк |
-| **Django REST Framework** | 3.15.2 | REST API |
-| **PostgreSQL** | 15 | База данных |
-| **psycopg** | 3.3.3 | PostgreSQL драйвер |
+| Технология | Версия | Назначение | Документация |
+|------------|--------|------------|--------------|
+| **Python** | 3.11 | Язык программирования | [docs.python.org](https://docs.python.org/3/) |
+| **Django** | 5.2.11 | Web-фреймворк | [docs.djangoproject.com](https://docs.djangoproject.com/) |
+| **Django REST Framework** | 3.15.2 | REST API | [django-rest-framework.org](https://www.django-rest-framework.org/) |
+| **PostgreSQL** | 15 | База данных | [postgresql.org/docs](https://www.postgresql.org/docs/) |
+| **psycopg** | 3.3.3 | PostgreSQL драйвер | [psycopg.org/docs](https://www.psycopg.org/docs/) |
 
 ### Frontend
-| Технология | Версия | Назначение |
-|------------|--------|------------|
-| **React** | 19.2.0 | UI библиотека |
-| **TypeScript** | 5.9.3 | Типизация |
-| **Vite** | 7.3.1 | Сборщик |
-| **Axios** | 1.13.6 | HTTP клиент |
-| **React Router DOM** | 7.13.1 | Маршрутизация |
+| Технология | Версия | Назначение | Документация |
+|------------|--------|------------|--------------|
+| **React** | 19.2.0 | UI библиотека | [react.dev](https://react.dev/) |
+| **TypeScript** | 5.9.3 | Типизация | [typescriptlang.org/docs](https://www.typescriptlang.org/docs/) |
+| **Vite** | 7.3.1 | Сборщик | [vite.dev](https://vite.dev/) |
+| **Axios** | 1.13.6 | HTTP клиент | [axios-http.com/docs](https://axios-http.com/docs/intro) |
+| **React Router DOM** | 7.13.1 | Маршрутизация | [reactrouter.com](https://reactrouter.com/) |
 
 ### DevOps & Tools
-| Инструмент | Назначение |
-|------------|------------|
-| **Docker** | Контейнеризация |
-| **Docker Compose** | Оркестрация контейнеров |
-| **MinIO** | Объектное хранилище |
-| **Adminer** | GUI для PostgreSQL |
-| **pre-commit** | Pre-commit хуки |
-| **Black** | Форматтер Python |
-| **isort** | Сортировка импортов |
-| **flake8** | Линтер Python |
-| **ESLint** | Линтер TypeScript/React |
-| **Prettier** | Форматтер кода |
+| Инструмент | Назначение | Документация |
+|------------|------------|--------------|
+| **Docker** | Контейнеризация | [docs.docker.com](https://docs.docker.com/) |
+| **Docker Compose** | Оркестрация контейнеров | [docs.docker.com/compose](https://docs.docker.com/compose/) |
+| **MinIO** | Объектное хранилище | [min.io/docs](https://min.io/docs/) |
+| **Adminer** | GUI для PostgreSQL | [adminer.org](https://www.adminer.org/) |
+| **pre-commit** | Pre-commit хуки | [pre-commit.com](https://pre-commit.com/) |
+| **Black** | Форматтер Python | [black.readthedocs.io](https://black.readthedocs.io/) |
+| **isort** | Сортировка импортов | [pycqa.github.io/isort](https://pycqa.github.io/isort/) |
+| **flake8** | Линтер Python | [flake8.pycqa.org](https://flake8.pycqa.org/) |
+| **ESLint** | Линтер TypeScript/React | [eslint.org/docs](https://eslint.org/docs/) |
+| **Prettier** | Форматтер кода | [prettier.io/docs](https://prettier.io/docs/) |
 
 ---
 

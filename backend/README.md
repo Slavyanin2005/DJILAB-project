@@ -67,19 +67,19 @@ backend/
 
 ## Технологии
 
-| Технология | Версия | Назначение |
-|------------|--------|------------|
-| **Python** | 3.11 | Язык программирования |
-| **Django** | 5.2.11 | Web-фреймворк |
-| **Django REST Framework** | 3.15.2 | REST API |
-| **PostgreSQL** | 15 | База данных |
-| **MinIO** | latest | Объектное хранилище |
-| **psycopg** | 3.3.3 | PostgreSQL драйвер |
-| **black** | 24.4.2 | Форматтер кода |
-| **isort** | 5.13.2 | Сортировка импортов |
-| **flake8** | 7.1.0 | Линтер |
-| **pre-commit** | 3.7.1 | Pre-commit хуки |
-| **django-cors-headers** | 4.3.1 | CORS для React |
+| Технология | Версия | Назначение | Документация |
+|------------|--------|------------|--------------|
+| **Python** | 3.11 | Язык программирования | [docs.python.org](https://docs.python.org/3/) |
+| **Django** | 5.2.11 | Web-фреймворк | [docs.djangoproject.com](https://docs.djangoproject.com/) |
+| **Django REST Framework** | 3.15.2 | REST API | [django-rest-framework.org](https://www.django-rest-framework.org/) |
+| **PostgreSQL** | 15 | База данных | [postgresql.org/docs](https://www.postgresql.org/docs/) |
+| **MinIO** | latest | Объектное хранилище | [min.io/docs](https://min.io/docs/) |
+| **psycopg** | 3.3.3 | PostgreSQL драйвер | [psycopg.org/docs](https://www.psycopg.org/docs/) |
+| **black** | 24.4.2 | Форматтер кода | [black.readthedocs.io](https://black.readthedocs.io/) |
+| **isort** | 5.13.2 | Сортировка импортов | [pycqa.github.io/isort](https://pycqa.github.io/isort/) |
+| **flake8** | 7.1.0 | Линтер | [flake8.pycqa.org](https://flake8.pycqa.org/) |
+| **pre-commit** | 3.7.1 | Pre-commit хуки | [pre-commit.com](https://pre-commit.com/) |
+| **django-cors-headers** | 4.3.1 | CORS для React | [github.com/adamchainz/django-cors-headers](https://github.com/adamchainz/django-cors-headers) |
 
 ---
 
