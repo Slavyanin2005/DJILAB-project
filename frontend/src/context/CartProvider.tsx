@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { apiService } from '../services/api';
 import type { Order } from '../types';
-import { CartContext } from './CartContext.context';
+import { CartContext } from './CartContext';
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cartCount, setCartCount] = useState(0);

@@ -16,8 +16,6 @@ EXCLUDED_PATTERNS = [
     r"^main\.(tsx?|jsx?|js)$",
     r"^vite-env\.d\.ts$",
     r"^index\.(tsx?|jsx?|js|css|html)$",
-    # Контекст файлы
-    r".*\.context\.ts$",
     # Конфигурационные файлы с дефисами
     r"^[a-z][a-z0-9-]*\.(json|yaml|yml|toml)$",
     r"^\.[a-z][a-z0-9.-]*$",
