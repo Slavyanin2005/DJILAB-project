@@ -1,17 +1,18 @@
 from django.db.models import Max
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from .minio_client import generate_unique_filename, upload_to_minio
 from .models import Order, OrderItem, Service, UserProfile
-from .serializers import OrderSerializer, ServiceSerializer, UserProfileSerializer
+from .serializers import OrderSerializer, ServiceSerializer, UserProfileSerializer, UserRegistrationSerializer
+from .utils import get_current_user
 
 
 class ServiceViewSet(viewsets.ModelViewSet):
-    """API для услуг/товаров"""
-
     queryset = Service.objects.filter(status="active")
     serializer_class = ServiceSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -19,28 +20,49 @@ class ServiceViewSet(viewsets.ModelViewSet):
     ordering_fields = ["price", "name", "created_at"]
     permission_classes = [AllowAny]
 
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+
+        if "image" in request.FILES:
+            file = request.FILES["image"]
+            service_name = request.data.get("name", "service")
+            filename = generate_unique_filename(file.name, service_name)
+            uploaded_name = upload_to_minio(file, filename)
+            if uploaded_name:
+                data["image_key"] = uploaded_name
+            else:
+                return Response({"error": "Ошибка загрузки изображения"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if "video" in request.FILES:
+            file = request.FILES["video"]
+            service_name = request.data.get("name", "service")
+            filename = generate_unique_filename(file.name, service_name)
+            uploaded_name = upload_to_minio(file, filename)
+            if uploaded_name:
+                data["video_key"] = uploaded_name
+            else:
+                return Response({"error": "Ошибка загрузки видео"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
     @action(detail=True, methods=["post"])
     def add_to_order(self, request, pk=None):
-        """Добавить услугу в заказ"""
         service = self.get_object()
         quantity = request.data.get("quantity", 1)
+        user = get_current_user()
 
-        order = Order.objects.filter(
-            creator=request.user if request.user.is_authenticated else None, status="draft"
-        ).first()
-
+        order = Order.objects.filter(creator=user, status="draft").first()
         if not order:
             max_id = Order.objects.aggregate(Max("id"))["id__max"] or 0
-            order = Order.objects.create(
-                id=max_id + 1,
-                status="draft",
-                creator=request.user if request.user.is_authenticated else None,
-            )
+            order = Order.objects.create(id=max_id + 1, status="draft", creator=user)
 
         order_item, created = OrderItem.objects.get_or_create(
             order=order, service=service, defaults={"quantity": quantity}
         )
-
         if not created:
             order_item.quantity += quantity
             order_item.save()
@@ -53,71 +75,93 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
 
 class OrderViewSet(viewsets.ModelViewSet):
-    """API для заказов"""
-
     serializer_class = OrderSerializer
-    # Разрешаем все действия для лабораторной (в продакшене — только IsAuthenticated)
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        # Возвращаем все заказы, кроме удалённых
-        return Order.objects.exclude(status="deleted").order_by("-created_at")
+        queryset = Order.objects.exclude(status="deleted")
+        if self.action == "list":
+            queryset = queryset.exclude(status="draft")
+        status_param = self.request.query_params.get("status")
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+        date_from = self.request.query_params.get("date_from")
+        date_to = self.request.query_params.get("date_to")
+        if date_from:
+            queryset = queryset.filter(formed_at__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(formed_at__lte=date_to)
+        return queryset.order_by("-created_at")
 
     def create(self, request, *args, **kwargs):
-        """Создать новый заказ-черновик с авто-генерацией ID"""
-        max_id = Order.objects.aggregate(Max("id"))["id__max"] or 0
-        order = Order.objects.create(
-            id=max_id + 1,
-            status="draft",
-            creator=request.user if request.user.is_authenticated else None,
-            total=0,
-            items_count=0,
-        )
-        serializer = self.get_serializer(order)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def _check_draft_permission(self, order):
-        """Проверка: можно ли изменять этот заказ"""
-        if order.status != "draft":
-            return False, "Нельзя изменить завершённый заказ"
-        return True, None
-
-    @action(detail=True, methods=["post"])
-    def add_item(self, request, pk=None):
-        """Добавить позицию в заказ"""
-        order = self.get_object()
-
-        allowed, error = self._check_draft_permission(order)
-        if not allowed:
-            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
-
-        service_id = request.data.get("service_id")
-        quantity = request.data.get("quantity", 1)
-
-        service = get_object_or_404(Service, id=service_id, status="active")
-
-        order_item, created = OrderItem.objects.get_or_create(
-            order=order, service=service, defaults={"quantity": quantity}
+        return Response(
+            {"error": "Заявка создается автоматически при добавлении услуги"}, status=status.HTTP_405_METHOD_NOT_ALLOWED
         )
 
-        if not created:
-            order_item.quantity += quantity
-            order_item.save()
+    @action(detail=False, methods=["get"])
+    def cart_icon(self, request):
+        user = get_current_user()
+        draft = Order.objects.filter(creator=user, status="draft").first()
+        if draft:
+            return Response({"id": draft.id, "items_count": draft.items_count})
+        return Response({"id": None, "items_count": 0})
 
-        order.items_count = OrderItem.objects.filter(order=order).count()
-        order.total = sum(item.subtotal for item in OrderItem.objects.filter(order=order))
-        order.save()
+    # ==================== M2M ОПЕРАЦИИ (НОВЫЕ REST МЕТОДЫ) ====================
 
-        return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=["post"])
-    def update_item(self, request, pk=None):
-        """Изменить количество позиции в заказе"""
+    @action(detail=True, methods=["put"], url_path=r"items/(?P<service_id>\d+)")
+    def update_item(self, request, pk=None, service_id=None):
+        """
+        PUT /api/orders/{id}/items/{service_id}/
+        Изменение количества позиции (без PK позиции, используем service_id)
+        """
         order = self.get_object()
+        user = get_current_user()
 
-        allowed, error = self._check_draft_permission(order)
-        if not allowed:
-            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+        if order.creator != user or order.status != "draft":
+            return Response({"error": "Доступ запрещен или заявка не черновик"}, status=status.HTTP_403_FORBIDDEN)
+
+        # Ищем позицию по service_id заявки
+        item = get_object_or_404(OrderItem, order=order, service_id=service_id)
+
+        quantity = request.data.get("quantity")
+        if quantity is not None:
+            item.quantity = quantity
+            item.save()
+
+        self._recalculate(order)
+        return Response(OrderSerializer(order).data)
+
+    @action(detail=True, methods=["delete"], url_path=r"items/(?P<service_id>\d+)")
+    def delete_item(self, request, pk=None, service_id=None):
+        """
+        DELETE /api/orders/{id}/items/{service_id}/
+        Удаление позиции из заявки (без PK позиции, используем service_id)
+        """
+        order = self.get_object()
+        user = get_current_user()
+
+        if order.creator != user or order.status != "draft":
+            return Response({"error": "Доступ запрещен или заявка не черновик"}, status=status.HTTP_403_FORBIDDEN)
+
+        # Удаляем позицию
+        OrderItem.objects.filter(order=order, service_id=service_id).delete()
+        self._recalculate(order)
+        return Response(OrderSerializer(order).data)
+
+        # ==================== СТАРЫЕ МЕТОДЫ ДЛЯ СОВМЕСТИМОСТИ С ФРОНТЕНДОМ ====================
+
+    @action(detail=True, methods=["post"], url_path="update_item")
+    def update_item_legacy(self, request, pk=None):
+        """
+        POST /api/orders/{id}/update_item/
+        Старый метод: принимает item_id и action (increase/decrease)
+        Для совместимости с текущим фронтендом
+        """
+        order = self.get_object()
+        user = get_current_user()
+
+        if order.creator != user or order.status != "draft":
+            return Response({"error": "Доступ запрещен или заявка не черновик"}, status=status.HTTP_403_FORBIDDEN)
 
         item_id = request.data.get("item_id")
         action = request.data.get("action")
@@ -130,69 +174,88 @@ class OrderViewSet(viewsets.ModelViewSet):
             if order_item.quantity > 1:
                 order_item.quantity -= 1
             else:
+                # Если количество 1 и нажали "уменьшить" — удаляем позицию
                 order_item.delete()
-                order.items_count = OrderItem.objects.filter(order=order).count()
-                order.total = sum(item.subtotal for item in OrderItem.objects.filter(order=order))
-                order.save()
+                self._recalculate(order)
                 return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)
 
         order_item.save()
-
-        order.items_count = OrderItem.objects.filter(order=order).count()
-        order.total = sum(item.subtotal for item in OrderItem.objects.filter(order=order))
-        order.save()
-
+        self._recalculate(order)
         return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["post"])
-    def remove_item(self, request, pk=None):
-        """Удалить позицию из заказа"""
+    @action(detail=True, methods=["post"], url_path="remove_item")
+    def remove_item_legacy(self, request, pk=None):
+        """
+        POST /api/orders/{id}/remove_item/
+        Старый метод: принимает item_id
+        Для совместимости с текущим фронтендом
+        """
         order = self.get_object()
+        user = get_current_user()
 
-        allowed, error = self._check_draft_permission(order)
-        if not allowed:
-            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+        if order.creator != user or order.status != "draft":
+            return Response({"error": "Доступ запрещен или заявка не черновик"}, status=status.HTTP_403_FORBIDDEN)
 
         item_id = request.data.get("item_id")
         OrderItem.objects.filter(id=item_id, order=order).delete()
 
+        self._recalculate(order)
+        return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)
+
+    # ==================== СТАТУСЫ ЗАЯВКИ ====================
+
+    @action(detail=True, methods=["put"])
+    def form(self, request, pk=None):
+        order = self.get_object()
+        user = get_current_user()
+        if order.creator != user or order.status != "draft":
+            return Response({"error": "Только создатель может сформировать черновик"}, status=status.HTTP_403_FORBIDDEN)
+        if order.items_count == 0:
+            return Response({"error": "Нельзя сформировать пустую заявку"}, status=status.HTTP_400_BAD_REQUEST)
+        order.status = "formed"
+        order.formed_at = timezone.now()
+        order.save()
+        return Response(OrderSerializer(order).data)
+
+    @action(detail=True, methods=["put"])
+    def complete(self, request, pk=None):
+        order = self.get_object()
+        if order.status != "formed":
+            return Response(
+                {"error": "Можно завершать только сформированные заявки"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        action_type = request.data.get("action", "complete")
+        order.status = "completed" if action_type == "complete" else "rejected"
+        order.completed_at = timezone.now()
+        order.save()
+        return Response(OrderSerializer(order).data)
+
+    @action(detail=True, methods=["post"])
+    def delete(self, request, pk=None):
+        order = self.get_object()
+        user = get_current_user()
+        if order.creator != user:
+            return Response({"error": "Доступ запрещен"}, status=status.HTTP_403_FORBIDDEN)
+        if order.status != "draft":
+            return Response({"error": "Можно удалить только черновик"}, status=status.HTTP_400_BAD_REQUEST)
+        order.status = "deleted"
+        order.save()
+        return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, pk=None, *args, **kwargs):
+        order = self.get_object()
+        user = get_current_user()
+        if order.creator != user:
+            return Response({"error": "Доступ запрещен"}, status=status.HTTP_403_FORBIDDEN)
+        return super().partial_update(request, pk, *args, **kwargs)
+
+    def _recalculate(self, order):
         order.items_count = OrderItem.objects.filter(order=order).count()
         order.total = sum(item.subtotal for item in OrderItem.objects.filter(order=order))
         order.save()
 
-        return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=["post"])
-    def submit(self, request, pk=None):
-        """Отправить заказ"""
-        order = self.get_object()
-
-        allowed, error = self._check_draft_permission(order)
-        if not allowed:
-            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
-
-        order.status = "formed"
-        order.save()
-
-        return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=["post"])
-    def delete(self, request, pk=None):
-        """Логическое удаление заказа"""
-        order = self.get_object()
-
-        if order.status != "draft":
-            return Response({"error": "Можно удалить только черновик"}, status=status.HTTP_400_BAD_REQUEST)
-
-        order.status = "deleted"
-        order.save()
-
-        return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)
-
 
 class UserProfileViewSet(viewsets.ModelViewSet):
-    """API для профилей пользователей"""
-
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
 
@@ -200,3 +263,25 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             return UserProfile.objects.filter(user=self.request.user)
         return UserProfile.objects.none()
+
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny])
+    def register(self, request):
+        serializer = UserRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(
+                {"id": user.id, "username": user.username, "message": "Регистрация успешна"},
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny])
+    def login(self, request):
+        username = request.data.get("username")
+        if username:
+            return Response({"message": "Login stub OK", "token": "stub_token_123"})
+        return Response({"error": "Username required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny])
+    def logout(self, request):
+        return Response({"message": "Logout stub OK"})

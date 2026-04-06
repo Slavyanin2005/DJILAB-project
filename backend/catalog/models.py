@@ -83,29 +83,23 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-
     order = models.ForeignKey(Order, on_delete=models.PROTECT, verbose_name="Заявка")
     service = models.ForeignKey(Service, on_delete=models.PROTECT, verbose_name="Услуга")
-
     quantity = models.IntegerField(default=1, verbose_name="Количество")
     position = models.IntegerField(default=0, verbose_name="Позиция")
     is_main = models.BooleanField(default=False, verbose_name="Главная услуга")
 
-    # Рассчитываемое поле цены и кол-ва
+    # Новое поле для результатов (из лаб. 8)
+    result = models.CharField(max_length=255, blank=True, null=True, verbose_name="Результат")
+
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Подытог", blank=True, editable=False)
 
     def save(self, *args, **kwargs):
-        # Авто расчёт subtotal
         if self.service and self.quantity:
             self.subtotal = self.service.price * self.quantity
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"{self.service.name} x {self.quantity}"
-
     class Meta:
-        verbose_name = "Позиция заявки"
-        verbose_name_plural = "Позиции заявки"
         db_table = "order_items"
         unique_together = ["order", "service"]
         ordering = ["position"]

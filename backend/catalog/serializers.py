@@ -18,7 +18,31 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = ["id", "user", "phone", "company", "position", "created_at"]
 
 
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, min_length=6)
+
+    class Meta:
+        model = User
+        fields = ["username", "email", "password", "first_name", "last_name"]
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data.get("email", ""),
+            password=validated_data["password"],
+            first_name=validated_data.get("first_name", ""),
+            last_name=validated_data.get("last_name", ""),
+        )
+        # Создаем профиль пользователя автоматически
+        UserProfile.objects.create(user=user)
+        return user
+
+
 class ServiceSerializer(serializers.ModelSerializer):
+    # Поля для загрузки файлов (write_only=True, чтобы не передавать их в ответе GET)
+    image = serializers.ImageField(write_only=True, required=False)
+    video = serializers.FileField(write_only=True, required=False)
+
     class Meta:
         model = Service
         fields = [
@@ -27,6 +51,7 @@ class ServiceSerializer(serializers.ModelSerializer):
             "description",
             "price",
             "status",
+            # Ключи файлов (read_only)
             "image_key",
             "video_key",
             "image_key_2",
@@ -37,19 +62,22 @@ class ServiceSerializer(serializers.ModelSerializer):
             "manufacturer",
             "created_at",
             "updated_at",
+            # Поля для приема файлов
+            "image",
+            "video",
         ]
-        read_only_fields = ["created_at", "updated_at"]
+        read_only_fields = ["created_at", "updated_at", "image_key", "video_key"]
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
     service = ServiceSerializer(read_only=True)
-    service_id = serializers.IntegerField(write_only=True)
-    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    # ✅ Убираем write_only=True, чтобы service_id возвращался
+    service_id = serializers.IntegerField(read_only=True)  # или просто убери эту строку
 
     class Meta:
         model = OrderItem
         fields = ["id", "order", "service", "service_id", "quantity", "position", "is_main", "subtotal"]
-        read_only_fields = ["order", "subtotal"]
+        read_only_fields = ["order", "subtotal", "service_id"]  # ← добавь service_id сюда
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -73,4 +101,14 @@ class OrderSerializer(serializers.ModelSerializer):
             "comment",
             "items",
         ]
-        read_only_fields = ["creator", "total", "items_count", "created_at"]
+        # ВАЖНО: Добавили status, formed_at, completed_at, moderator в read_only
+        read_only_fields = [
+            "creator",
+            "status",
+            "formed_at",
+            "completed_at",
+            "moderator",
+            "total",
+            "items_count",
+            "created_at",
+        ]
