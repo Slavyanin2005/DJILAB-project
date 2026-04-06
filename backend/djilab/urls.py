@@ -6,7 +6,6 @@ from django.urls import include, path
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("catalog.api_urls")),  # ← Добавить API routes
-    path("", include("catalog.urls")),  # Старые HTML routes
 ]
 
 # Для раздачи медиа-файлов
