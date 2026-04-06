@@ -2,19 +2,20 @@
 Django settings for djilab project.
 """
 
-import os
 from pathlib import Path
+
+from decouple import Csv, config  # ← Импортируем config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-lab1-secret-key-change-in-production"
+SECRET_KEY = config("SECRET_KEY")  # ← Из .env
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config("DEBUG", default=False, cast=bool)  # ← Из .env, по умолчанию False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=Csv())  # ← Из .env
 
 # Application definition
 INSTALLED_APPS = [
@@ -40,20 +41,16 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# CORS настройки
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vite dev server
-    "http://127.0.0.1:5173",
-]
-
-CORS_ALLOW_CREDENTIALS = True
+# CORS настройки — из .env
+CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", default="http://localhost:5173,http://127.0.0.1:5173", cast=Csv())
+CORS_ALLOW_CREDENTIALS = config("CORS_ALLOW_CREDENTIALS", default=True, cast=bool)
 
 ROOT_URLCONF = "djilab.urls"
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],  # ← Путь к папке templates
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -68,14 +65,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "djilab.wsgi.application"
 
+# DATABASE — все параметры из .env
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", "djilab_db"),
-        "USER": os.getenv("DB_USER", "admin"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "Dflbv2005"),
-        "HOST": os.getenv("DB_HOST", "localhost"),  # ← В Docker будет 'postgres'
-        "PORT": os.getenv("DB_PORT", "5432"),  # ← В Docker будет '5432'
+        "NAME": config("DB_NAME"),
+        "USER": config("DB_USER"),
+        "PASSWORD": config("DB_PASSWORD"),
+        "HOST": config("DB_HOST"),
+        "PORT": config("DB_PORT"),
     }
 }
 
@@ -96,21 +94,21 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internationalization
-LANGUAGE_CODE = "ru-ru"
-TIME_ZONE = "Europe/Moscow"
-USE_I18N = True
-USE_TZ = True
+LANGUAGE_CODE = config("LANGUAGE_CODE", default="ru-ru")
+TIME_ZONE = config("TIME_ZONE", default="Europe/Moscow")
+USE_I18N = config("USE_I18N", default=True, cast=bool)
+USE_TZ = config("USE_TZ", default=True, cast=bool)
 
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = "/static/"
+# Static files
+STATIC_URL = config("STATIC_URL", default="/static/")
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# MinIO конфигурация
-MINIO_URL = "http://localhost:9000"
-MINIO_BUCKET = "djilab-products"
-MINIO_ACCESS_KEY = "admin"
-MINIO_SECRET_KEY = "Dflbv2005"
+# MinIO — все параметры из .env
+MINIO_URL = config("MINIO_URL")
+MINIO_BUCKET = config("MINIO_BUCKET")
+MINIO_ACCESS_KEY = config("MINIO_ACCESS_KEY")
+MINIO_SECRET_KEY = config("MINIO_SECRET_KEY")
 
 # Media files (для MinIO)
 MEDIA_URL = f"{MINIO_URL}/{MINIO_BUCKET}/"
@@ -119,7 +117,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Статусы заявок
+# Статусы заявок (константы, можно оставить как есть)
 ORDER_STATUS_CHOICES = [
     ("draft", "Черновик"),
     ("deleted", "Удалён"),
@@ -137,35 +135,22 @@ SERVICE_STATUS_CHOICES = [
 # DRF настройки
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",  # Пока без авторизации
+        "rest_framework.permissions.AllowAny",
     ],
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
 }
 
-# CORS + сессии для React
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
-
-# Разрешить заголовки для сессий
-CORS_ALLOW_HEADERS = [
-    "accept",
-    "accept-encoding",
-    "authorization",
-    "content-type",
-    "dnt",
-    "origin",
-    "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
-]
+# CORS заголовки
+CORS_ALLOW_HEADERS = config(
+    "CORS_ALLOW_HEADERS",
+    default="accept,accept-encoding,authorization,content-type,dnt,origin,user-agent,x-csrftoken,x-requested-with",
+    cast=Csv(),
+)
 
 # Настройки сессий
-SESSION_COOKIE_SAMESITE = "Lax"  # или 'None' если нужно
-SESSION_COOKIE_SECURE = False  # True только для HTTPS
-CSRF_COOKIE_SAMESITE = "Lax"
-CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SAMESITE = config("SESSION_COOKIE_SAMESITE", default="Lax")
+SESSION_COOKIE_SECURE = config("SESSION_COOKIE_SECURE", default=False, cast=bool)
+CSRF_COOKIE_SAMESITE = config("CSRF_COOKIE_SAMESITE", default="Lax")
+CSRF_COOKIE_SECURE = config("CSRF_COOKIE_SECURE", default=False, cast=bool)
