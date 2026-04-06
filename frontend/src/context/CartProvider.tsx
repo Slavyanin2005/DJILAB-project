@@ -11,10 +11,19 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const refreshCart = async () => {
     try {
-      const orders = await apiService.getOrders();
-      const draft = orders.find((o) => o.status === 'draft');
-      setDraftOrder(draft || null);
-      setCartCount(draft?.items_count || 0);
+      // ✅ Используем специальный эндпоинт для получения черновика
+      const cartInfo = await apiService.getCartIcon();
+
+      if (cartInfo.id) {
+        // Если есть черновик — загружаем его полные данные
+        const draft = await apiService.getOrder(cartInfo.id);
+        setDraftOrder(draft);
+        setCartCount(cartInfo.items_count);
+      } else {
+        // Черновика нет
+        setDraftOrder(null);
+        setCartCount(0);
+      }
     } catch (error) {
       console.error('Failed to refresh cart:', error);
       setCartCount(0);

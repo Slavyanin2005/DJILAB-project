@@ -18,20 +18,23 @@ export const Cart: React.FC = () => {
 
   const loadCart = async () => {
     try {
-      const orders = await apiService.getOrders();
-      const draftOrder = orders.find((o) => o.status === 'draft');
+      // ✅ Используем специальный эндпоинт для иконки корзины
+      const cartInfo = await apiService.getCartIcon();
 
-      if (draftOrder) {
-        // ✅ Черновик есть — загружаем товары
-        setOrder(draftOrder);
-        setItems(draftOrder.items || []);
+      if (cartInfo.id) {
+        // Черновик есть — загружаем полную информацию о заказе
+        const order = await apiService.getOrder(cartInfo.id);
+        setOrder(order);
+        setItems(order.items || []);
       } else {
-        // ❌ Черновика нет — сбрасываем состояние
+        // Черновика нет — сбрасываем состояние
         setOrder(null);
         setItems([]);
       }
     } catch (error) {
       console.error('Failed to load cart:', error);
+      setOrder(null);
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -51,7 +54,11 @@ export const Cart: React.FC = () => {
   const removeItem = async (itemId: number) => {
     if (!order) return;
     try {
-      await apiService.removeItemFromOrder(order.id, itemId);
+      // ✅ Находим service_id по itemId, затем удаляем по service_id
+      const item = order.items.find((i) => i.id === itemId);
+      if (!item) throw new Error('Item not found');
+
+      await apiService.removeItemFromOrder(order.id, item.service_id);
       await loadCart();
       await refreshCart();
     } catch (error) {

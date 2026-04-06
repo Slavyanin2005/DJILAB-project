@@ -16,6 +16,21 @@ export interface Service {
   updated_at: string;
 }
 
+// ✅ Новый интерфейс для регистрации
+export interface RegisterData {
+  username: string;
+  password: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+}
+
+// ✅ Интерфейс ответа авторизации
+export interface AuthResponse {
+  message: string;
+  token?: string;
+}
+
 export interface OrderItem {
   id: number;
   order: number;
