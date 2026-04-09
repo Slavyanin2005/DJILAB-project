@@ -21,7 +21,11 @@ class ServiceViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
-        data = request.data.copy()
+        # ✅ Правильный способ: создаём новый dict вручную
+        data = {}
+        # Копируем только текстовые поля
+        for key, value in request.data.items():
+            data[key] = value
 
         if "image" in request.FILES:
             file = request.FILES["image"]
@@ -108,11 +112,11 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     # ==================== M2M ОПЕРАЦИИ (НОВЫЕ REST МЕТОДЫ) ====================
 
-    @action(detail=True, methods=["put"], url_path=r"items/(?P<service_id>\d+)")
-    def update_item(self, request, pk=None, service_id=None):
+    @action(detail=True, methods=["put"], url_path="update_item")
+    def update_item(self, request, pk=None):
         """
-        PUT /api/orders/{id}/items/{service_id}/
-        Изменение количества позиции (без PK позиции, используем service_id)
+        PUT /api/orders/{id}/update_item/
+        Изменение количества позиции по service_id
         """
         order = self.get_object()
         user = get_current_user()
@@ -120,7 +124,10 @@ class OrderViewSet(viewsets.ModelViewSet):
         if order.creator != user or order.status != "draft":
             return Response({"error": "Доступ запрещен или заявка не черновик"}, status=status.HTTP_403_FORBIDDEN)
 
-        # Ищем позицию по service_id заявки
+        service_id = request.data.get("service_id")
+        if not service_id:
+            return Response({"error": "Требуется поле service_id"}, status=status.HTTP_400_BAD_REQUEST)
+
         item = get_object_or_404(OrderItem, order=order, service_id=service_id)
 
         quantity = request.data.get("quantity")
@@ -150,7 +157,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         # ==================== СТАРЫЕ МЕТОДЫ ДЛЯ СОВМЕСТИМОСТИ С ФРОНТЕНДОМ ====================
 
-    @action(detail=True, methods=["post"], url_path="update_item")
+    @action(detail=True, methods=["post"], url_path="update_item_legacy")
     def update_item_legacy(self, request, pk=None):
         """
         POST /api/orders/{id}/update_item/

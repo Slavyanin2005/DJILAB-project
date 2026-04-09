@@ -66,7 +66,15 @@ class ServiceSerializer(serializers.ModelSerializer):
             "image",
             "video",
         ]
-        read_only_fields = ["created_at", "updated_at", "image_key", "video_key"]
+        read_only_fields = ["created_at", "updated_at"]
+
+    def create(self, validated_data):
+        # Удаляем поля файлов — они уже обработаны во views.py
+        # (там загружаются в MinIO и записываются в image_key/video_key)
+        validated_data.pop("image", None)
+        validated_data.pop("video", None)
+        # Создаём услугу с оставшимися данными (включая id, name, price, image_key и т.д.)
+        return Service.objects.create(**validated_data)
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
